@@ -1,5 +1,7 @@
 # SQL
 
+![tests](https://github.com/gouniverse/sql/workflows/tests/badge.svg)
+
 Simple SQL builder
 
 ## Example
