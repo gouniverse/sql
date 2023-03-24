@@ -24,3 +24,6 @@ sql := sb.NewSqlite().Table("cache").Insert(map[string]string{
 ```ssh
 go get -u github.com/gouniverse/sql
 ```
+
+## Other
+https://github.com/elgris/golang-sql-builder-benchmark
