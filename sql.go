@@ -17,9 +17,6 @@ type SQLBuilder struct {
 	tableName string
 	//SQL       hashmap.Map
 	where *arraystack.Stack
-	// TagContent    string
-	// TagAttributes map[string]string
-	// TagChildren   []*Tag
 }
 
 // NewSqlite represents a BUTTON tag
