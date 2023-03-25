@@ -25,7 +25,9 @@ sql := sb.NewSqlite().Table("cache").Insert(map[string]string{
 go get -u github.com/gouniverse/sql
 ```
 
-## Other
-https://github.com/elgris/golang-sql-builder-benchmark
-https://github.com/es-code/gql
-https://doug-martin.github.io/goqu/
+## Similar
+
+- https://doug-martin.github.io/goqu - Best SQL Builder
+- https://github.com/elgris/golang-sql-builder-benchmark
+- https://github.com/es-code/gql
+
