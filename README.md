@@ -2,7 +2,10 @@
 
 ![tests](https://github.com/gouniverse/sql/workflows/tests/badge.svg)
 
-A simple SQL builder and DB wrapper (to easily work with transactions).
+An SQL package that wraps the mainstream DB package to allow transparent working
+with transactions and simplified SQL builder (with limited functionality).
+
+For a full SQL builder functionality check: https://doug-martin.github.io/goqu
 
 
 ## Installation
@@ -106,7 +109,7 @@ sql := sb.NewSqlite().Table("cache").Insert(map[string]string{
 
 ## Similar
 
-- https://doug-martin.github.io/goqu - Best SQL Builder
+- https://doug-martin.github.io/goqu - Best SQL Builder for Golang
 - https://github.com/elgris/golang-sql-builder-benchmark
 - https://github.com/es-code/gql
 
