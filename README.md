@@ -82,6 +82,8 @@ mapString := myDb.SelectToMapAny(sql)
 
 ## Example of the Otdated Builder (do not use)
 
+This builder was version 1 and is now outdated
+
 ```go
 import sb "github.com/gouniverse/sql"
 	
