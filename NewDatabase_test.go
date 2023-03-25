@@ -13,7 +13,7 @@ func TestNewDatabase(t *testing.T) {
 	if err != nil {
 		t.Fatal("Error must be NIL but got: ", err.Error())
 	}
-	db := NewDatabase(conn)
+	db := NewDatabase(conn, DIALECT_SQLITE)
 	if db == nil {
 		t.Fatal("Database MUST NOT BE NIL")
 	}

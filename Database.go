@@ -5,11 +5,19 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+
+	"github.com/georgysavva/scany/sqlscan"
+	"github.com/gouniverse/maputils"
 )
 
 type Database struct {
-	db *sql.DB
-	tx *sql.Tx
+	db           *sql.DB
+	tx           *sql.Tx
+	databaseType string
+}
+
+func (d *Database) Type() string {
+	return d.databaseType
 }
 
 func (d *Database) Open() (err error) {
@@ -123,4 +131,36 @@ func (d *Database) RollbackTransaction() (err error) {
 	d.tx = nil // empty transaction
 
 	return err
+}
+
+func (d *Database) SelectToMapAny(sqlStr string, args ...any) ([]map[string]any, error) {
+	listMap := []map[string]any{}
+
+	err := sqlscan.Select(context.Background(), d.db, &listMap, sqlStr)
+	if err != nil {
+		if sqlscan.NotFound(err) {
+			return []map[string]any{}, nil
+		}
+
+		return []map[string]any{}, err
+	}
+
+	return listMap, nil
+}
+
+func (d *Database) SelectToMapString(sqlStr string, args ...any) ([]map[string]string, error) {
+	listMapAny, err := d.SelectToMapAny(sqlStr, args...)
+
+	if err != nil {
+		return []map[string]string{}, err
+	}
+
+	listMapString := []map[string]string{}
+
+	for i := 0; i < len(listMapAny); i++ {
+		mapString := maputils.MapStringAnyToMapStringString(listMapAny[i])
+		listMapString = append(listMapString, mapString)
+	}
+
+	return listMapString, nil
 }
