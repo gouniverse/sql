@@ -36,6 +36,7 @@ err := myDb.Exec(sql)
 ## Example Transaction
 
 ```go
+import _ "modernc.org/sqlite"
 import sb "github.com/gouniverse/sql"
 
 myDb = sql.NewDatabaseFromDriver("sqlite3", "test.db")
