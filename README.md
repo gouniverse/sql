@@ -2,7 +2,7 @@
 
 ![tests](https://github.com/gouniverse/sql/workflows/tests/badge.svg)
 
-Simple SQL builder
+A simple SQL builder and DB wrapper (to easily work with transactions).
 
 
 ## Installation
