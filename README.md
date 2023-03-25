@@ -17,8 +17,6 @@ go get -u github.com/gouniverse/sql
 ```go
 import sb "github.com/gouniverse/sql"
 
-
-
 sql := NewBuilder(DIALECT_MYSQL).
 		Table("users").
 		Column("id", "string", map[string]string{
@@ -27,6 +25,10 @@ sql := NewBuilder(DIALECT_MYSQL).
 		}).
 		Column("image", "blob", map[string]string{}).
 		Column("created_at", "datetime", map[string]string{}).
+		Column("updated_at", "datetime", map[string]string{}).
+		Column("deleted_at", "datetime", map[string]string{
+			"nullable": "yes",
+		}).
 		Create()
 
 myDb := sb.NewDatabaseFromDb(sqlDb, DIALECT_MYSQL)

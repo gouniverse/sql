@@ -122,6 +122,7 @@ func (b *Builder) columnsToSQL(columns []map[string]any) string {
 		columnLength := lo.ValueOr(columnOptions, "length", "")
 		columnAuto := lo.ValueOr(columnOptions, "auto", "no")
 		columnPrimary := lo.ValueOr(columnOptions, "primary", "no")
+		columnNullable := lo.ValueOr(columnOptions, "nullable", "no")
 
 		columnSql := lo.IfF(b.Dialect == DIALECT_MYSQL, func() string {
 			columnType := lo.
@@ -159,6 +160,9 @@ func (b *Builder) columnsToSQL(columns []map[string]any) string {
 			if columnPrimary == "yes" {
 				sql += " PRIMARY KEY"
 			}
+			if columnNullable != "yes" {
+				sql += " NOT NULL"
+			}
 			return sql
 		}).ElseIfF(b.Dialect == DIALECT_POSTGRES, func() string {
 			columnType := lo.
@@ -195,6 +199,9 @@ func (b *Builder) columnsToSQL(columns []map[string]any) string {
 			if columnPrimary == "yes" {
 				sql += " PRIMARY KEY"
 			}
+			if columnNullable != "yes" {
+				sql += " NOT NULL"
+			}
 			return sql
 		}).ElseIfF(b.Dialect == DIALECT_SQLITE, func() string {
 			columnType := lo.
@@ -230,6 +237,9 @@ func (b *Builder) columnsToSQL(columns []map[string]any) string {
 			}
 			if columnPrimary == "yes" {
 				sql += " PRIMARY KEY"
+			}
+			if columnNullable != "yes" {
+				sql += " NOT NULL"
 			}
 			return sql
 		}).ElseF(func() string {
