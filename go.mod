@@ -14,6 +14,7 @@ require (
 require (
 	github.com/darkoatanasovski/htmltags v1.0.0 // indirect
 	github.com/gouniverse/api v1.5.0 // indirect
+	github.com/gouniverse/uid v1.4.0 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible // indirect
 	github.com/tdewolff/minify/v2 v2.12.0 // indirect

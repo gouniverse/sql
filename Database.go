@@ -5,15 +5,73 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"time"
 
 	"github.com/georgysavva/scany/sqlscan"
 	"github.com/gouniverse/maputils"
+	"github.com/gouniverse/uid"
 )
 
 type Database struct {
-	db           *sql.DB
-	tx           *sql.Tx
-	databaseType string
+	db             *sql.DB
+	tx             *sql.Tx
+	databaseType   string
+	sqlLogEnabled  bool
+	sqlLog         map[string]string
+	sqlDurationLog map[string]time.Duration
+	debug          bool
+}
+
+func (d *Database) SqlLog() []map[string]string {
+	log := []map[string]string{}
+	for key, value := range d.sqlLog {
+		sqlDuration := d.sqlDurationLog[key]
+		log = append(log, map[string]string{
+			"sql":  value,
+			"time": sqlDuration.String(),
+		})
+	}
+	return log
+}
+
+func (d *Database) SqlLogEmpty() {
+	d.sqlLog = map[string]string{}
+	d.sqlDurationLog = map[string]time.Duration{}
+}
+
+func (d *Database) SqlLogLen() int {
+	return len(d.sqlLog)
+}
+
+func (d *Database) SqlLogEnable(enable bool) {
+	d.sqlLogEnabled = enable
+}
+
+func (d *Database) SqlLogShrink(leaveLast int) {
+	if len(d.sqlLog) <= leaveLast {
+		return
+	}
+
+	keys := []string{}
+
+	for key, _ := range d.sqlLog {
+		keys = append(keys, key)
+	}
+
+	tempSqlLog := map[string]string{}
+	tempSqlDurationLog := map[string]time.Duration{}
+	lastKeys := keys[leaveLast:]
+	for _, key := range lastKeys {
+		tempSqlLog[key] = d.sqlLog[key]
+		tempSqlDurationLog[key] = d.sqlDurationLog[key]
+	}
+
+	d.sqlLog = tempSqlLog
+	d.sqlDurationLog = tempSqlDurationLog
+}
+
+func (d *Database) DebugEnable(debug bool) {
+	d.debug = debug
 }
 
 func (d *Database) Type() string {
@@ -87,18 +145,58 @@ func (d *Database) ExecInTransaction(fn func(d *Database) error) (err error) {
 	return
 }
 
-func (d *Database) Exec(sql string, args ...any) (sql.Result, error) {
-	if d.tx != nil {
-		return d.tx.Exec(sql, args...)
+func (d *Database) Exec(sqlStr string, args ...any) (sql.Result, error) {
+	if d.sqlLogEnabled {
+		if d.sqlLog == nil {
+			d.sqlLog = map[string]string{}
+			d.sqlDurationLog = map[string]time.Duration{}
+		}
+
+		sqlID := uid.HumanUid()
+
+		d.sqlLog[sqlID] = sqlStr
+
+		start := time.Now()
+		defer func() {
+			d.sqlDurationLog[sqlID] = time.Since(start)
+		}()
 	}
-	return d.db.Exec(sql, args...)
+
+	if d.debug {
+		log.Println(sqlStr)
+	}
+
+	if d.tx != nil {
+		return d.tx.Exec(sqlStr, args...)
+	}
+	return d.db.Exec(sqlStr, args...)
 }
 
-func (d *Database) Query(sql string, args ...any) (*sql.Rows, error) {
-	if d.tx != nil {
-		return d.tx.Query(sql, args...)
+func (d *Database) Query(sqlStr string, args ...any) (*sql.Rows, error) {
+	if d.sqlLogEnabled {
+		if d.sqlLog == nil {
+			d.sqlLog = map[string]string{}
+			d.sqlDurationLog = map[string]time.Duration{}
+		}
+
+		sqlID := uid.HumanUid()
+
+		d.sqlLog[sqlID] = sqlStr
+
+		start := time.Now()
+		defer func() {
+			d.sqlDurationLog[sqlID] = time.Since(start)
+		}()
 	}
-	return d.db.Query(sql, args...)
+
+	if d.debug {
+		log.Println(sqlStr)
+	}
+
+	if d.tx != nil {
+		return d.tx.Query(sqlStr, args...)
+	}
+	return d.db.Query(sqlStr, args...)
 }
 
 func (d *Database) CommitTransaction() (err error) {
@@ -134,6 +232,26 @@ func (d *Database) RollbackTransaction() (err error) {
 }
 
 func (d *Database) SelectToMapAny(sqlStr string, args ...any) ([]map[string]any, error) {
+	if d.sqlLogEnabled {
+		if d.sqlLog == nil {
+			d.sqlLog = map[string]string{}
+			d.sqlDurationLog = map[string]time.Duration{}
+		}
+
+		sqlID := uid.HumanUid()
+
+		d.sqlLog[sqlID] = sqlStr
+
+		start := time.Now()
+		defer func() {
+			d.sqlDurationLog[sqlID] = time.Since(start)
+		}()
+	}
+
+	if d.debug {
+		log.Println(sqlStr)
+	}
+
 	listMap := []map[string]any{}
 
 	err := sqlscan.Select(context.Background(), d.db, &listMap, sqlStr)
