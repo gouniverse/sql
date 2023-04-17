@@ -120,6 +120,7 @@ func (b *Builder) columnsToSQL(columns []map[string]any) string {
 		columnType := utils.ToString(column["column_type"])
 		columnOptions := column["column_options"].(map[string]string)
 		columnLength := lo.ValueOr(columnOptions, "length", "")
+		columnDecimals := lo.ValueOr(columnOptions, "decimals", "")
 		columnAuto := lo.ValueOr(columnOptions, "auto", "no")
 		columnPrimary := lo.ValueOr(columnOptions, "primary", "no")
 		columnNullable := lo.ValueOr(columnOptions, "nullable", "no")
@@ -148,18 +149,38 @@ func (b *Builder) columnsToSQL(columns []map[string]any) string {
 				ElseIfF(columnType == "datetime", func() string {
 					return "DATETIME"
 				}).
+				ElseIfF(columnType == "decimal", func() string {
+					return "DECIMAL"
+				}).
 				Else(columnType)
 
 			sql := "`" + columnName + "` " + columnType
-			if columnLength != "" {
+
+			// Column length
+			if columnType == "DECIMAL" {
+				if columnLength == "" {
+					columnLength = "10"
+				}
+				if columnDecimals == "" {
+					columnDecimals = "2"
+				}
+				sql += "(" + columnLength + "," + columnDecimals + ")"
+
+			} else if columnLength != "" {
 				sql += "(" + columnLength + ")"
 			}
+
+			// Auto increment
 			if columnAuto == "yes" {
 				sql += " AUTO_INCREMENT"
 			}
+
+			// Primary key
 			if columnPrimary == "yes" {
 				sql += " PRIMARY KEY"
 			}
+
+			// Non Nullable / Required
 			if columnNullable != "yes" {
 				sql += " NOT NULL"
 			}
@@ -187,18 +208,38 @@ func (b *Builder) columnsToSQL(columns []map[string]any) string {
 				ElseIfF(columnType == "datetime", func() string {
 					return "TIMESTAMP"
 				}).
+				ElseIfF(columnType == "decimal", func() string {
+					return "DECIMAL"
+				}).
 				Else(columnType)
 
 			sql := `"` + columnName + `" ` + columnType + ``
-			if columnLength != "" && columnType != "TEXT" {
+
+			// Column length
+			if columnType == "DECIMAL" {
+				if columnLength == "" {
+					columnLength = "10"
+				}
+				if columnDecimals == "" {
+					columnDecimals = "2"
+				}
+				sql += "(" + columnLength + "," + columnDecimals + ")"
+
+			} else if columnLength != "" && columnType != "TEXT" {
 				sql += "(" + columnLength + ")"
 			}
+
+			// Auto increment
 			if columnAuto == "yes" {
 				sql += " SERIAL"
 			}
+
+			// Primary key
 			if columnPrimary == "yes" {
 				sql += " PRIMARY KEY"
 			}
+
+			// Non Nullable / Required
 			if columnNullable != "yes" {
 				sql += " NOT NULL"
 			}
@@ -226,18 +267,38 @@ func (b *Builder) columnsToSQL(columns []map[string]any) string {
 				ElseIfF(columnType == "datetime", func() string {
 					return "DATETIME"
 				}).
+				ElseIfF(columnType == "decimal", func() string {
+					return "DECIMAL"
+				}).
 				Else(columnType)
 
 			sql := `"` + columnName + `" ` + columnType + ``
-			if columnLength != "" {
+
+			// Column length
+			if columnType == "DECIMAL" {
+				if columnLength == "" {
+					columnLength = "10"
+				}
+				if columnDecimals == "" {
+					columnDecimals = "2"
+				}
+				sql += "(" + columnLength + "," + columnDecimals + ")"
+
+			} else if columnLength != "" {
 				sql += "(" + columnLength + ")"
 			}
+
+			// Auto increment
 			if columnAuto == "yes" {
 				sql += " AUTOINCREMENT"
 			}
+
+			// Primary key
 			if columnPrimary == "yes" {
 				sql += " PRIMARY KEY"
 			}
+
+			// Non Nullable / Required
 			if columnNullable != "yes" {
 				sql += " NOT NULL"
 			}

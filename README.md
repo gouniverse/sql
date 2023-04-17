@@ -27,6 +27,11 @@ sql := NewBuilder(DIALECT_MYSQL).
 			"length":  "40",
 		}).
 		Column("image", "blob", map[string]string{}).
+		Column("price_default", "decimal", map[string]string{}).
+		Column("price_custom", "decimal", map[string]string{
+			"length":   "12",
+			"decimals": "10",
+		}).
 		Column("created_at", "datetime", map[string]string{}).
 		Column("updated_at", "datetime", map[string]string{}).
 		Column("deleted_at", "datetime", map[string]string{
