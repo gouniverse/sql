@@ -6,6 +6,7 @@ require (
 	github.com/emirpasic/gods v1.18.1
 	github.com/georgysavva/scany v1.2.1
 	github.com/gouniverse/maputils v0.2.0
+	github.com/gouniverse/uid v1.4.0
 	github.com/gouniverse/utils v1.29.0
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/samber/lo v1.38.1
@@ -14,7 +15,6 @@ require (
 require (
 	github.com/darkoatanasovski/htmltags v1.0.0 // indirect
 	github.com/gouniverse/api v1.5.0 // indirect
-	github.com/gouniverse/uid v1.4.0 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible // indirect
 	github.com/tdewolff/minify/v2 v2.12.0 // indirect
