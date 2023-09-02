@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"sort"
 	"strconv"
 	"strings"
 
@@ -253,6 +254,64 @@ func (b *Builder) Select(columns []string) string {
 	}
 
 	return sql
+}
+
+/**
+ * The <b>update</b> method updates the values of a row in a table.
+ * <code>
+ * $updated_user = array("USER_MANE"=>"Mike");
+ * $database->table("USERS")->where("USER_NAME","==","Peter")->update($updated_user);
+ * </code>
+ * @param Array an associative array, where keys are the column names of the table
+ * @return int 0 or 1, on success, false, otherwise
+ * @access public
+ */
+func (b *Builder) Update(columnValues map[string]string) string {
+	if b.sqlTableName == "" {
+		panic("In method Delete() no table specified to delete from!")
+	}
+
+	join := "" // TODO
+
+	groupBy := ""
+	if len(b.sqlGroupBy) > 0 {
+		groupBy = b.groupByToSql(b.sqlGroupBy)
+	}
+
+	where := ""
+	if len(b.sqlWhere) > 0 {
+		where = b.whereToSql(b.sqlWhere)
+	}
+
+	orderBy := ""
+	if len(b.sqlOrderBy) > 0 {
+		orderBy = b.orderByToSql(b.sqlOrderBy)
+	}
+
+	limit := ""
+	if b.sqlLimit > 0 {
+		limit = " LIMIT " + strconv.FormatInt(b.sqlLimit, 10)
+	}
+
+	offset := ""
+	if b.sqlOffset > 0 {
+		offset = " OFFSET " + strconv.FormatInt(b.sqlOffset, 10)
+	}
+
+	// Order keys
+	keys := make([]string, 0, len(columnValues))
+	for k := range columnValues {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	updateSql := []string{}
+	for _, columnName := range keys {
+		columnValue := columnValues[columnName]
+		updateSql = append(updateSql, b.quoteColumn(columnName)+"="+b.quoteValue(columnValue))
+	}
+
+	return "UPDATE " + b.quoteTable(b.sqlTableName) + " SET " + strings.Join(updateSql, ", ") + join + where + groupBy + orderBy + limit + offset + ";"
 }
 
 func (b *Builder) Where(where Where) *Builder {

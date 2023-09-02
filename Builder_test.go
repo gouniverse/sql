@@ -262,3 +262,63 @@ func TestBuilderTableSelectFullSqlite(t *testing.T) {
 		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
 	}
 }
+
+func TestBuilderTableUpdateMysql(t *testing.T) {
+	sql := NewBuilder(DIALECT_MYSQL).
+		Table("users").
+		Where(Where{
+			Column:   "id",
+			Operator: "==",
+			Value:    "1",
+		}).
+		Limit(1).
+		Update(map[string]string{
+			"first_name": "Tom",
+			"last_name":  "Jones",
+		})
+
+	expected := "UPDATE `users` SET `first_name`=\"Tom\", `last_name`=\"Jones\" WHERE `id` = \"1\" LIMIT 1;"
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderTableUpdatePostgres(t *testing.T) {
+	sql := NewBuilder(DIALECT_POSTGRES).
+		Table("users").
+		Where(Where{
+			Column:   "id",
+			Operator: "==",
+			Value:    "1",
+		}).
+		Limit(1).
+		Update(map[string]string{
+			"first_name": "Tom",
+			"last_name":  "Jones",
+		})
+
+	expected := `UPDATE "users" SET "first_name"="Tom", "last_name"="Jones" WHERE "id" = "1" LIMIT 1;`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderTableUpdateSqlite(t *testing.T) {
+	sql := NewBuilder(DIALECT_SQLITE).
+		Table("users").
+		Where(Where{
+			Column:   "id",
+			Operator: "==",
+			Value:    "1",
+		}).
+		Limit(1).
+		Update(map[string]string{
+			"first_name": "Tom",
+			"last_name":  "Jones",
+		})
+
+	expected := `UPDATE "users" SET "first_name"='Tom', "last_name"='Jones' WHERE "id" = '1' LIMIT 1;`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
