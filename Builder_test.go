@@ -263,6 +263,51 @@ func TestBuilderTableSelectFullSqlite(t *testing.T) {
 	}
 }
 
+func TestBuilderTableInsertMysql(t *testing.T) {
+	sql := NewBuilder(DIALECT_MYSQL).
+		Table("users").
+		Limit(1).
+		Insert(map[string]string{
+			"first_name": "Tom",
+			"last_name":  "Jones",
+		})
+
+	expected := "INSERT INTO `users` (`first_name`, `last_name`) VALUES (\"Tom\", \"Jones\") LIMIT 1;"
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderTableInsertPostgres(t *testing.T) {
+	sql := NewBuilder(DIALECT_POSTGRES).
+		Table("users").
+		Limit(1).
+		Insert(map[string]string{
+			"first_name": "Tom",
+			"last_name":  "Jones",
+		})
+
+	expected := `INSERT INTO "users" ("first_name", "last_name") VALUES ("Tom", "Jones") LIMIT 1;`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderTableInsertSqlite(t *testing.T) {
+	sql := NewBuilder(DIALECT_SQLITE).
+		Table("users").
+		Limit(1).
+		Insert(map[string]string{
+			"first_name": "Tom",
+			"last_name":  "Jones",
+		})
+
+	expected := `INSERT INTO "users" ("first_name", "last_name") VALUES ('Tom', 'Jones') LIMIT 1;`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
 func TestBuilderTableUpdateMysql(t *testing.T) {
 	sql := NewBuilder(DIALECT_MYSQL).
 		Table("users").

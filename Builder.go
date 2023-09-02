@@ -135,13 +135,7 @@ func (b *Builder) Delete() string {
 	}
 
 	sql := ""
-	if b.Dialect == DIALECT_MYSQL {
-		sql = "DELETE FROM " + b.quoteTable(b.sqlTableName) + where + orderBy + limit + offset + ";"
-	}
-	if b.Dialect == DIALECT_POSTGRES {
-		sql = `DELETE FROM ` + b.quoteTable(b.sqlTableName) + where + orderBy + limit + offset + `;`
-	}
-	if b.Dialect == DIALECT_SQLITE {
+	if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
 		sql = "DELETE FROM " + b.quoteTable(b.sqlTableName) + where + orderBy + limit + offset + ";"
 	}
 	return sql
@@ -150,13 +144,7 @@ func (b *Builder) Delete() string {
 // Drop deletes a table
 func (b *Builder) Drop() string {
 	sql := ""
-	if b.Dialect == DIALECT_MYSQL {
-		sql = "DROP TABLE " + b.quoteTable(b.sqlTableName) + ";"
-	}
-	if b.Dialect == DIALECT_POSTGRES {
-		sql = `DROP TABLE ` + b.quoteTable(b.sqlTableName) + `;`
-	}
-	if b.Dialect == DIALECT_SQLITE {
+	if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
 		sql = "DROP TABLE " + b.quoteTable(b.sqlTableName) + ";"
 	}
 	return sql
@@ -254,6 +242,50 @@ func (b *Builder) Select(columns []string) string {
 	}
 
 	return sql
+}
+
+/**
+ * The <b>update</b> method updates the values of a row in a table.
+ * <code>
+ * $updated_user = array("USER_MANE"=>"Mike");
+ * $database->table("USERS")->where("USER_NAME","==","Peter")->update($updated_user);
+ * </code>
+ * @param Array an associative array, where keys are the column names of the table
+ * @return int 0 or 1, on success, false, otherwise
+ * @access public
+ */
+func (b *Builder) Insert(columnValuesMap map[string]string) string {
+	if b.sqlTableName == "" {
+		panic("In method Insert() no table specified to insert in!")
+	}
+
+	limit := ""
+	if b.sqlLimit > 0 {
+		limit = " LIMIT " + strconv.FormatInt(b.sqlLimit, 10)
+	}
+
+	offset := ""
+	if b.sqlOffset > 0 {
+		offset = " OFFSET " + strconv.FormatInt(b.sqlOffset, 10)
+	}
+
+	columnNames := []string{}
+	columnValues := []string{}
+
+	// Order keys
+	keys := make([]string, 0, len(columnValuesMap))
+	for k := range columnValuesMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, columnName := range keys {
+		columnValue := columnValuesMap[columnName]
+		columnNames = append(columnNames, b.quoteColumn(columnName))
+		columnValues = append(columnValues, b.quoteValue(columnValue))
+	}
+
+	return "INSERT INTO " + b.quoteTable(b.sqlTableName) + " (" + strings.Join(columnNames, ", ") + ") VALUES (" + strings.Join(columnValues, ", ") + ")" + limit + offset + ";"
 }
 
 /**
@@ -750,18 +782,56 @@ func (b *Builder) quoteTable(tableName string) string {
 
 func (b *Builder) quoteValue(value string) string {
 	if b.Dialect == DIALECT_MYSQL {
-		value = `"` + value + `"`
+		value = `"` + b.escapeMysql(value) + `"`
 	}
 
 	if b.Dialect == DIALECT_POSTGRES {
-		value = `"` + value + `"`
+		value = `"` + b.escapePostgres(value) + `"`
 	}
 
 	if b.Dialect == DIALECT_SQLITE {
-		value = `'` + value + `'`
+		value = `'` + b.escapeSqlite(value) + `'`
 	}
 
 	return value
+}
+
+func (b *Builder) escapeMysql(value string) string {
+	// escapeRegexp       = regexp.MustCompile(`[\0\t\x1a\n\r\"\'\\]`)
+	// characterEscapeMap = map[string]string{
+	// 	"\\0":  `\\0`,  //ASCII NULL
+	// 	"\b":   `\\b`,  //backspace
+	// 	"\t":   `\\t`,  //tab
+	// 	"\x1a": `\\Z`,  //ASCII 26 (Control+Z);
+	// 	"\n":   `\\n`,  //newline character
+	// 	"\r":   `\\r`,  //return character
+	// 	"\"":   `\\"`,  //quote (")
+	// 	"'":    `\'`,   //quote (')
+	// 	"\\":   `\\\\`, //backslash (\)
+	// 	// "\\%":  `\\%`,  //% character
+	// 	// "\\_":  `\\_`,  //_ character
+	// }
+	// return escapeRegexp.ReplaceAllStringFunc(val, func(s string) string {
+
+	// 	mVal, ok := characterEscapeMap[s]
+	// 	if ok {
+	// 		return mVal
+	// 	}
+	// 	return s
+	// })
+
+	escapedStr := strings.ReplaceAll(value, `"`, `""`)
+	return escapedStr
+}
+
+func (b *Builder) escapePostgres(value string) string {
+	escapedStr := strings.ReplaceAll(value, "'", "''")
+	return escapedStr
+}
+
+func (b *Builder) escapeSqlite(value string) string {
+	escapedStr := strings.ReplaceAll(value, "'", "''")
+	return escapedStr
 }
 
 /**
