@@ -43,6 +43,16 @@ myDb := sb.NewDatabaseFromDb(sqlDb, DIALECT_MYSQL)
 err := myDb.Exec(sql)
 ```
 
+## Example Table Drop
+
+```go
+import sb "github.com/gouniverse/sql"
+
+sql := NewBuilder(DIALECT_MYSQL).
+		Table("users").
+		Drop()
+```
+
 ## Example Transaction
 
 ```go
