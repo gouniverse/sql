@@ -15,7 +15,7 @@ go get -u github.com/gouniverse/sql
 ```
 
 
-## Example Table Creation
+## Example Table Creation SQL
 
 ```go
 import sb "github.com/gouniverse/sql"
@@ -38,12 +38,9 @@ sql := NewBuilder(DIALECT_MYSQL).
 			"nullable": "yes",
 		}).
 		Create()
-
-myDb := sb.NewDatabaseFromDb(sqlDb, DIALECT_MYSQL)
-err := myDb.Exec(sql)
 ```
 
-## Example Table Drop
+## Example Table Drop SQL
 
 ```go
 import sb "github.com/gouniverse/sql"
@@ -51,6 +48,57 @@ import sb "github.com/gouniverse/sql"
 sql := NewBuilder(DIALECT_MYSQL).
 		Table("users").
 		Drop()
+```
+
+
+## Example Insert SQL
+
+```go
+import sb "github.com/gouniverse/sql"
+	
+sql := sb.NewBuilder(DIALECT_MYSQL).
+	Table("cache").
+	Insert(map[string]string{
+		"ID":         uid.NanoUid(),
+		"CacheKey":   token,
+		"CacheValue": string(emailJSON),
+		"ExpiresAt":  expiresAt.Format("2006-01-02T15:04:05"),
+		"CreatedAt":  time.Now().Format("2006-01-02T15:04:05"),
+		"UpdatedAt":  time.Now().Format("2006-01-02T15:04:05"),
+	})
+```
+
+## Example Delete SQL
+
+```go
+sql := sb.NewBuilder(DIALECT_MYSQL).
+	Table("user").
+	Where(sb.Where{
+		Column: "id",
+		Operator: "==",
+		Value: "1",
+	}).
+	Limit(1).
+	Delete()
+```
+
+## Initiating Database Instance
+
+1) From existing Go DB instance
+```
+myDb := sb.NewDatabaseFromDb(sqlDb, DIALECT_MYSQL)
+```
+
+3) From driver
+```
+myDb = sql.NewDatabaseFromDriver("sqlite3", "test.db")
+```
+
+## Example SQL Execute
+
+```
+myDb := sb.NewDatabaseFromDb(sqlDb, DIALECT_MYSQL)
+err := myDb.Exec(sql)
 ```
 
 ## Example Transaction
@@ -97,27 +145,6 @@ Executes a select query and returns map[string]string
 
 mapString := myDb.SelectToMapAny(sql)
 
-```
-
-
-
-## Example of the Otdated Builder (do not use)
-
-This builder was version 0.0.1 and is now considered outdated.
-
-The example is left here for historical reference.
-
-```go
-import sb "github.com/gouniverse/sql"
-	
-sql := sb.NewSqlite().Table("cache").Insert(map[string]string{
-		"ID":         uid.NanoUid(),
-		"CacheKey":   token,
-		"CacheValue": string(emailJSON),
-		"ExpiresAt":  expiresAt.Format("2006-01-02T15:04:05"),
-		"CreatedAt":  time.Now().Format("2006-01-02T15:04:05"),
-		"UpdatedAt":  time.Now().Format("2006-01-02T15:04:05"),
-})
 ```
 
 
