@@ -16,6 +16,10 @@ type Where struct {
 	Value    string
 }
 
+type GroupBy struct {
+	Column string
+}
+
 type OrderBy struct {
 	Column    string
 	Direction string
@@ -26,6 +30,7 @@ type Builder struct {
 	//TableName    string
 	sql          map[string]any
 	sqlColumns   []map[string]any
+	sqlGroupBy   []GroupBy
 	sqlLimit     int64
 	sqlOffset    int64
 	sqlOrderBy   []OrderBy
@@ -166,6 +171,11 @@ func (b *Builder) Offset(offset int64) *Builder {
 	return b
 }
 
+func (b *Builder) GroupBy(groupBy GroupBy) *Builder {
+	b.sqlGroupBy = append(b.sqlGroupBy, groupBy)
+	return b
+}
+
 func (b *Builder) OrderBy(columnName string, direction string) *Builder {
 	if strings.EqualFold(direction, "desc") || strings.EqualFold(direction, "descending") {
 		direction = "DESC"
@@ -179,6 +189,70 @@ func (b *Builder) OrderBy(columnName string, direction string) *Builder {
 	})
 
 	return b
+}
+
+/** The <b>select</b> method selects rows from a table, based on criteria.
+ * <code>
+ * // Selects all the rows from the table
+ * $db->table("USERS")->select();
+ *
+ * // Selects the rows where the column NAME is different from Peter, in descending order
+ * $db->table("USERS")
+ *     ->where("NAME","!=","Peter")
+ *     ->orderby("NAME","desc")
+ *     ->select();
+ * </code>
+ * @return mixed rows as associative array, false on error
+ * @access public
+ */
+func (b *Builder) Select(columns []string) string {
+	if b.sqlTableName == "" {
+		panic("In method Delete() no table specified to delete from!")
+	}
+
+	join := "" // TODO
+
+	groupBy := ""
+	if len(b.sqlGroupBy) > 0 {
+		groupBy = b.groupByToSql(b.sqlGroupBy)
+	}
+
+	where := ""
+	if len(b.sqlWhere) > 0 {
+		where = b.whereToSql(b.sqlWhere)
+	}
+
+	orderBy := ""
+	if len(b.sqlOrderBy) > 0 {
+		orderBy = b.orderByToSql(b.sqlOrderBy)
+	}
+
+	limit := ""
+	if b.sqlLimit > 0 {
+		limit = " LIMIT " + strconv.FormatInt(b.sqlLimit, 10)
+	}
+
+	offset := ""
+	if b.sqlOffset > 0 {
+		offset = " OFFSET " + strconv.FormatInt(b.sqlOffset, 10)
+	}
+
+	columnsStr := "*"
+
+	if len(columns) > 0 {
+		for index, column := range columns {
+			columns[index] = b.quoteColumn(column)
+		}
+		columnsStr = strings.Join(columns, ", ")
+	}
+
+	sql := ""
+
+	if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
+		sql = "SELECT " + columnsStr + " FROM " + b.quoteTable(b.sqlTableName) + join + where + groupBy + orderBy + limit + offset + ";"
+	}
+
+	return sql
 }
 
 func (b *Builder) Where(where Where) *Builder {
@@ -486,24 +560,60 @@ func (b *Builder) whereToSql(wheres []Where) string {
 	return ""
 }
 
-//     private function groupby_to_sql($groupbys)
-//     {
-//         $sql = array();
-//         // MySQL
-//         if ($this->database_type == 'mysql') {
-//             foreach ($groupbys as $groupby) {
-//                 $sql[] = "`" . $groupby['COLUMN'] . "`";
-//             }
-//             return (count($sql) > 0) ? " GROUP BY " . implode(", ", $sql) : "";
-//         }
-//         // SQLite
-//         if ($this->database_type == 'sqlite' or $this->database_type == 'sqlitedb') {
-//             foreach ($groupbys as $groupby) {
-//                 $sql[] = "" . $groupby['COLUMN'];
-//             }
-//             return (count($sql) > 0) ? " GROUP BY " . implode(", ", $sql) : "";
-//         }
-//     }
+func (b *Builder) groupByToSql(groupBys []GroupBy) string {
+	sql := []string{}
+	for _, groupBy := range groupBys {
+		sql = append(sql, b.quoteColumn(groupBy.Column))
+	}
+
+	if len(sql) > 0 {
+		return " GROUP BY " + strings.Join(sql, ",")
+	}
+
+	return ""
+}
+
+// /**
+//      * Joins tables to SQL.
+//      * @return String the join SQL string
+//      * @access private
+//      */
+// 	 private function join_to_sql($join, $table_name)
+// 	 {
+// 		 $sql = '';
+// 		 // MySQL
+// 		 if ($this->database_type == 'mysql') {
+// 			 foreach ($join as $what) {
+// 				 $type = $what[3] ?? '';
+// 				 $alias = $what[4] ?? '';
+// 				 $sql .= ' ' . $type . ' JOIN `' . $what[0] . '`';
+// 				 if ($alias != "") {
+// 					 $sql .= ' AS ' . $alias . '';
+// 					 $what[0] = $alias;
+// 				 }
+// 				 if ($what[1] == $what[2]) {
+// 					 $sql .= ' USING (`' . $what[1] . '`)';
+// 				 } else {
+// 					 $sql .= ' ON ' . $table_name . '.' . $what[1] . '=' . $what[0] . '.' . $what[2];
+// 				 }
+// 			 }
+// 		 }
+// 		 // SQLite
+// 		 if ($this->database_type == 'sqlite' or $this->database_type == 'sqlitedb') {
+// 			 foreach ($join as $what) {
+// 				 $type = $what[3] ?? '';
+// 				 $alias = $what[4] ?? '';
+// 				 $sql .= " $type JOIN '" . $what[0] . "'";
+// 				 if ($alias != "") {
+// 					 $sql .= " AS '$alias'";
+// 					 $what[0] = $alias;
+// 				 }
+// 				 $sql .= ' ON ' . $table_name . '.' . $what[1] . '=' . $what[0] . '.' . $what[2];
+// 			 }
+// 		 }
+
+// 		 return $sql;
+// 	 }
 
 func (b *Builder) orderByToSql(orderBys []OrderBy) string {
 	sql := []string{}
@@ -594,3 +704,45 @@ func (b *Builder) quoteValue(value string) string {
 
 	return value
 }
+
+/**
+ * The <b>tables</b> method returns the names of all the tables, that
+ * exist in the database.
+ * <code>
+ * foreach($database->tables() as $table){
+ *     echo $table;
+ * }
+ * </code>
+ * @param String the name of the table
+ * @return array the names of the tables
+ * @access public
+ */
+//  func (b *Builder) Tables(value string)
+//  {
+// 	 $tables = array();
+
+// 	 if ($this->database_type == 'mysql') {
+// 		 //$sql = "SHOW TABLES";
+// 		 $sql = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='" . $this->database_name . "'";
+// 		 $result = $this->executeQuery($sql);
+// 		 if ($result === false)
+// 			 return false;
+// 		 foreach ($result as $row) {
+// 			 $tables[] = $row['TABLE_NAME'];
+// 		 }
+// 		 return $tables;
+// 	 }
+
+// 	 if ($this->database_type == 'sqlite' or $this->database_type == 'sqlitedb') {
+// 		 $sql = "SELECT * FROM 'SQLITE_MASTER' WHERE type='table' ORDER BY NAME ASC";
+// 		 $result = $this->executeQuery($sql);
+// 		 if ($result === false) {
+// 			 return false;
+// 		 }
+// 		 foreach ($result as $row) {
+// 			 $tables[] = $row['name'];
+// 		 }
+// 		 return $tables;
+// 	 }
+// 	 return false;
+//  }
