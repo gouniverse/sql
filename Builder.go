@@ -825,7 +825,7 @@ func (b *Builder) escapeMysql(value string) string {
 }
 
 func (b *Builder) escapePostgres(value string) string {
-	escapedStr := strings.ReplaceAll(value, "'", "''")
+	escapedStr := strings.ReplaceAll(value, `"`, `""`)
 	return escapedStr
 }
 

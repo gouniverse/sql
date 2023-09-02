@@ -367,3 +367,39 @@ func TestBuilderTableUpdateSqlite(t *testing.T) {
 		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
 	}
 }
+
+func TestBuilderTableSelectMysqlInj(t *testing.T) {
+	sql := NewBuilder(DIALECT_MYSQL).
+		Table("users").
+		Where(Where{Column: "id", Operator: "=", Value: "58\" OR 1 = 1;--"}).
+		Select([]string{})
+
+	expected := "SELECT * FROM `users` WHERE `id` = \"58\"\" OR 1 = 1;--\";"
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderTableSelectPostgreslInj(t *testing.T) {
+	sql := NewBuilder(DIALECT_POSTGRES).
+		Table("users").
+		Where(Where{Column: "id", Operator: "=", Value: "58\" OR 1 = 1;--"}).
+		Select([]string{})
+
+	expected := `SELECT * FROM "users" WHERE "id" = "58"" OR 1 = 1;--";`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderTableSelectSqlitelInj(t *testing.T) {
+	sql := NewBuilder(DIALECT_SQLITE).
+		Table("users").
+		Where(Where{Column: "id", Operator: "=", Value: "58' OR 1 = 1;--"}).
+		Select([]string{})
+
+	expected := `SELECT * FROM "users" WHERE "id" = '58'' OR 1 = 1;--';`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
