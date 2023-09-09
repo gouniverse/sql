@@ -93,7 +93,7 @@ func (b *Builder) CreateIfNotExists() string {
 		sql = `CREATE TABLE IF NOT EXISTS ` + b.quoteTable(b.sqlTableName) + `(` + b.columnsToSQL(b.sqlColumns) + `);`
 	}
 	if b.Dialect == DIALECT_SQLITE {
-		sql = "CREATE TABLE IF NOT EXISTS " + b.quoteTable(b.sqlTableName) + "'(" + b.columnsToSQL(b.sqlColumns) + ");"
+		sql = "CREATE TABLE IF NOT EXISTS " + b.quoteTable(b.sqlTableName) + "(" + b.columnsToSQL(b.sqlColumns) + ");"
 	}
 	return sql
 }
