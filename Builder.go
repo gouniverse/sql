@@ -29,18 +29,36 @@ type OrderBy struct {
 type Builder struct {
 	Dialect string
 	//TableName    string
-	sql          map[string]any
-	sqlColumns   []map[string]any
-	sqlGroupBy   []GroupBy
-	sqlLimit     int64
-	sqlOffset    int64
-	sqlOrderBy   []OrderBy
-	sqlTableName string
-	sqlWhere     []Where
+	sql            map[string]any
+	sqlColumns     []map[string]any
+	sqlGroupBy     []GroupBy
+	sqlLimit       int64
+	sqlOffset      int64
+	sqlOrderBy     []OrderBy
+	sqlTableName   string
+	sqlViewName    string
+	sqlViewColumns []string
+	sqlViewSQL     string
+	sqlWhere       []Where
 }
 
 func (b *Builder) Table(tableName string) *Builder {
 	b.sqlTableName = tableName
+	return b
+}
+
+func (b *Builder) View(viewName string) *Builder {
+	b.sqlViewName = viewName
+	return b
+}
+
+func (b *Builder) ViewSQL(sql string) *Builder {
+	b.sqlViewSQL = sql
+	return b
+}
+
+func (b *Builder) ViewColumns(columns []string) *Builder {
+	b.sqlViewColumns = columns
 	return b
 }
 
@@ -71,30 +89,60 @@ func (b *Builder) Column(columnName string, columnType string, opts map[string]s
  * @access public
  */
 func (b *Builder) Create() string {
+	isView := b.sqlViewName != ""
+	isTable := b.sqlTableName != ""
+
 	sql := ""
-	if b.Dialect == DIALECT_MYSQL {
-		sql = "CREATE TABLE " + b.quoteTable(b.sqlTableName) + "(" + b.columnsToSQL(b.sqlColumns) + ");"
+
+	if isTable {
+		if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
+			sql = `CREATE TABLE ` + b.quoteTable(b.sqlTableName) + `(` + b.columnsToSQL(b.sqlColumns) + `);`
+		}
 	}
-	if b.Dialect == DIALECT_POSTGRES {
-		sql = `CREATE TABLE ` + b.quoteTable(b.sqlTableName) + `(` + b.columnsToSQL(b.sqlColumns) + `);`
+
+	if isView {
+		if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
+			viewColumnsToSQL := strings.Join(lo.Map(b.sqlViewColumns, func(columnName string, _ int) string {
+				return b.quoteColumn(columnName)
+			}), ", ")
+			viewColumns := lo.If(len(b.sqlViewColumns) > 0, ` (`+viewColumnsToSQL+`)`).Else(``)
+
+			sql = `CREATE VIEW ` + b.quoteTable(b.sqlViewName) + viewColumns + " AS " + b.sqlViewSQL
+		}
 	}
-	if b.Dialect == DIALECT_SQLITE {
-		sql = "CREATE TABLE " + b.quoteTable(b.sqlTableName) + "(" + b.columnsToSQL(b.sqlColumns) + ");"
-	}
+
 	return sql
 }
 
 func (b *Builder) CreateIfNotExists() string {
+	isView := b.sqlViewName != ""
+	isTable := b.sqlTableName != ""
+
 	sql := ""
-	if b.Dialect == DIALECT_MYSQL {
-		sql = "CREATE TABLE IF NOT EXISTS " + b.quoteTable(b.sqlTableName) + "(" + b.columnsToSQL(b.sqlColumns) + ");"
+
+	if isTable {
+		if b.Dialect == DIALECT_MYSQL {
+			sql = "CREATE TABLE IF NOT EXISTS " + b.quoteTable(b.sqlTableName) + "(" + b.columnsToSQL(b.sqlColumns) + ");"
+		}
+		if b.Dialect == DIALECT_POSTGRES {
+			sql = `CREATE TABLE IF NOT EXISTS ` + b.quoteTable(b.sqlTableName) + `(` + b.columnsToSQL(b.sqlColumns) + `);`
+		}
+		if b.Dialect == DIALECT_SQLITE {
+			sql = "CREATE TABLE IF NOT EXISTS " + b.quoteTable(b.sqlTableName) + "(" + b.columnsToSQL(b.sqlColumns) + ");"
+		}
 	}
-	if b.Dialect == DIALECT_POSTGRES {
-		sql = `CREATE TABLE IF NOT EXISTS ` + b.quoteTable(b.sqlTableName) + `(` + b.columnsToSQL(b.sqlColumns) + `);`
+
+	if isView {
+		if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
+			viewColumnsToSQL := strings.Join(lo.Map(b.sqlViewColumns, func(columnName string, _ int) string {
+				return b.quoteColumn(columnName)
+			}), ", ")
+			viewColumns := lo.If(len(b.sqlViewColumns) > 0, ` (`+viewColumnsToSQL+`)`).Else(``)
+
+			sql = `CREATE VIEW IF NOT EXISTS ` + b.quoteTable(b.sqlViewName) + viewColumns + " AS " + b.sqlViewSQL
+		}
 	}
-	if b.Dialect == DIALECT_SQLITE {
-		sql = "CREATE TABLE IF NOT EXISTS " + b.quoteTable(b.sqlTableName) + "(" + b.columnsToSQL(b.sqlColumns) + ");"
-	}
+
 	return sql
 }
 
@@ -141,12 +189,25 @@ func (b *Builder) Delete() string {
 	return sql
 }
 
-// Drop deletes a table
+// Drop deletes a table or a view
 func (b *Builder) Drop() string {
+	isView := b.sqlViewName != ""
+	isTable := b.sqlTableName != ""
+
 	sql := ""
-	if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
-		sql = "DROP TABLE " + b.quoteTable(b.sqlTableName) + ";"
+
+	if isTable {
+		if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
+			sql = "DROP TABLE " + b.quoteTable(b.sqlTableName) + ";"
+		}
 	}
+
+	if isView {
+		if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
+			sql = "DROP VIEW " + b.quoteTable(b.sqlTableName) + ";"
+		}
+	}
+
 	return sql
 }
 

@@ -6,31 +6,6 @@ import (
 	// _ "github.com/mattn/go-sqlite3"
 )
 
-func TestBuilderTableCreateSqlite(t *testing.T) {
-	sql := NewBuilder(DIALECT_SQLITE).
-		Table("users").
-		Column("id", "string", map[string]string{
-			"primary": "yes",
-			"length":  "40",
-		}).
-		Column("image", "blob", map[string]string{}).
-		Column("price_default", "decimal", map[string]string{}).
-		Column("price_custom", "decimal", map[string]string{
-			"length":   "12",
-			"decimals": "10",
-		}).
-		Column("created_at", "datetime", map[string]string{}).
-		Column("deleted_at", "datetime", map[string]string{
-			"nullable": "yes",
-		}).
-		Create()
-
-	expected := `CREATE TABLE "users"("id" TEXT(40) PRIMARY KEY NOT NULL, "image" BLOB NOT NULL, "price_default" DECIMAL(10,2) NOT NULL, "price_custom" DECIMAL(12,10) NOT NULL, "created_at" DATETIME NOT NULL, "deleted_at" DATETIME);`
-	if sql != expected {
-		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
-	}
-}
-
 func TestBuilderTableCreateMysql(t *testing.T) {
 	sql := NewBuilder(DIALECT_MYSQL).
 		Table("users").
@@ -76,6 +51,196 @@ func TestBuilderTableCreatePostgres(t *testing.T) {
 		Create()
 
 	expected := `CREATE TABLE "users"("id" TEXT PRIMARY KEY NOT NULL, "image" BYTEA NOT NULL, "price_default" DECIMAL(10,2) NOT NULL, "price_custom" DECIMAL(12,10) NOT NULL, "created_at" TIMESTAMP NOT NULL, "deleted_at" TIMESTAMP);`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderTableCreateSqlite(t *testing.T) {
+	sql := NewBuilder(DIALECT_SQLITE).
+		Table("users").
+		Column("id", "string", map[string]string{
+			"primary": "yes",
+			"length":  "40",
+		}).
+		Column("image", "blob", map[string]string{}).
+		Column("price_default", "decimal", map[string]string{}).
+		Column("price_custom", "decimal", map[string]string{
+			"length":   "12",
+			"decimals": "10",
+		}).
+		Column("created_at", "datetime", map[string]string{}).
+		Column("deleted_at", "datetime", map[string]string{
+			"nullable": "yes",
+		}).
+		Create()
+
+	expected := `CREATE TABLE "users"("id" TEXT(40) PRIMARY KEY NOT NULL, "image" BLOB NOT NULL, "price_default" DECIMAL(10,2) NOT NULL, "price_custom" DECIMAL(12,10) NOT NULL, "created_at" DATETIME NOT NULL, "deleted_at" DATETIME);`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderTableCreateIfNotExistsMysql(t *testing.T) {
+	sql := NewBuilder(DIALECT_MYSQL).
+		Table("users").
+		Column("id", "string", map[string]string{
+			"primary": "yes",
+			"length":  "40",
+		}).
+		Column("image", "blob", map[string]string{}).
+		Column("price_default", "decimal", map[string]string{}).
+		Column("price_custom", "decimal", map[string]string{
+			"length":   "12",
+			"decimals": "10",
+		}).
+		Column("created_at", "datetime", map[string]string{}).
+		Column("deleted_at", "datetime", map[string]string{
+			"nullable": "yes",
+		}).
+		CreateIfNotExists()
+
+	expected := "CREATE TABLE IF NOT EXISTS `users`(`id` VARCHAR(40) PRIMARY KEY NOT NULL, `image` LONGBLOB NOT NULL, `price_default` DECIMAL(10,2) NOT NULL, `price_custom` DECIMAL(12,10) NOT NULL, `created_at` DATETIME NOT NULL, `deleted_at` DATETIME);"
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\n but found:\n", sql)
+	}
+}
+
+func TestBuilderTableCreateIfNotExistsPostgres(t *testing.T) {
+	sql := NewBuilder(DIALECT_POSTGRES).
+		Table("users").
+		Column("id", "string", map[string]string{
+			"primary": "yes",
+			"length":  "40",
+		}).
+		Column("image", "blob", map[string]string{}).
+		Column("price_default", "decimal", map[string]string{}).
+		Column("price_custom", "decimal", map[string]string{
+			"length":   "12",
+			"decimals": "10",
+		}).
+		Column("created_at", "datetime", map[string]string{}).
+		Column("deleted_at", "datetime", map[string]string{
+			"nullable": "yes",
+		}).
+		CreateIfNotExists()
+
+	expected := `CREATE TABLE IF NOT EXISTS "users"("id" TEXT PRIMARY KEY NOT NULL, "image" BYTEA NOT NULL, "price_default" DECIMAL(10,2) NOT NULL, "price_custom" DECIMAL(12,10) NOT NULL, "created_at" TIMESTAMP NOT NULL, "deleted_at" TIMESTAMP);`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderTableCreateIfNotExistsSqlite(t *testing.T) {
+	sql := NewBuilder(DIALECT_SQLITE).
+		Table("users").
+		Column("id", "string", map[string]string{
+			"primary": "yes",
+			"length":  "40",
+		}).
+		Column("image", "blob", map[string]string{}).
+		Column("price_default", "decimal", map[string]string{}).
+		Column("price_custom", "decimal", map[string]string{
+			"length":   "12",
+			"decimals": "10",
+		}).
+		Column("created_at", "datetime", map[string]string{}).
+		Column("deleted_at", "datetime", map[string]string{
+			"nullable": "yes",
+		}).
+		CreateIfNotExists()
+
+	expected := `CREATE TABLE IF NOT EXISTS "users"("id" TEXT(40) PRIMARY KEY NOT NULL, "image" BLOB NOT NULL, "price_default" DECIMAL(10,2) NOT NULL, "price_custom" DECIMAL(12,10) NOT NULL, "created_at" DATETIME NOT NULL, "deleted_at" DATETIME);`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderViewCreateMysql(t *testing.T) {
+	selectSQL := NewBuilder(DIALECT_MYSQL).Table("users").Select([]string{"FirstName", "LastName"})
+
+	sql := NewBuilder(DIALECT_MYSQL).
+		View("v_users").
+		ViewColumns([]string{"first_name", "last_name"}).
+		ViewSQL(selectSQL).
+		Create()
+
+	expected := "CREATE VIEW `v_users` (`first_name`, `last_name`) AS SELECT `FirstName`, `LastName` FROM `users`;"
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderViewCreatePostgresql(t *testing.T) {
+	selectSQL := NewBuilder(DIALECT_POSTGRES).Table("users").Select([]string{"FirstName", "LastName"})
+
+	sql := NewBuilder(DIALECT_POSTGRES).
+		View("v_users").
+		ViewColumns([]string{"first_name", "last_name"}).
+		ViewSQL(selectSQL).
+		Create()
+
+	expected := `CREATE VIEW "v_users" ("first_name", "last_name") AS SELECT "FirstName", "LastName" FROM "users";`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderViewCreateSqlite(t *testing.T) {
+	selectSQL := NewBuilder(DIALECT_SQLITE).Table("users").Select([]string{"FirstName", "LastName"})
+
+	sql := NewBuilder(DIALECT_SQLITE).
+		View("v_users").
+		ViewColumns([]string{"first_name", "last_name"}).
+		ViewSQL(selectSQL).
+		Create()
+
+	expected := `CREATE VIEW "v_users" ("first_name", "last_name") AS SELECT "FirstName", "LastName" FROM "users";`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderViewCreateIfNotExistsMysql(t *testing.T) {
+	selectSQL := NewBuilder(DIALECT_MYSQL).Table("users").Select([]string{"FirstName", "LastName"})
+
+	sql := NewBuilder(DIALECT_MYSQL).
+		View("v_users").
+		ViewColumns([]string{"first_name", "last_name"}).
+		ViewSQL(selectSQL).
+		CreateIfNotExists()
+
+	expected := "CREATE VIEW IF NOT EXISTS `v_users` (`first_name`, `last_name`) AS SELECT `FirstName`, `LastName` FROM `users`;"
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderViewCreateIfNotExistsPostgresql(t *testing.T) {
+	selectSQL := NewBuilder(DIALECT_POSTGRES).Table("users").Select([]string{"FirstName", "LastName"})
+
+	sql := NewBuilder(DIALECT_POSTGRES).
+		View("v_users").
+		ViewColumns([]string{"first_name", "last_name"}).
+		ViewSQL(selectSQL).
+		CreateIfNotExists()
+
+	expected := `CREATE VIEW IF NOT EXISTS "v_users" ("first_name", "last_name") AS SELECT "FirstName", "LastName" FROM "users";`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderViewCreateIfNotExistsSqlite(t *testing.T) {
+	selectSQL := NewBuilder(DIALECT_SQLITE).Table("users").Select([]string{"FirstName", "LastName"})
+
+	sql := NewBuilder(DIALECT_SQLITE).
+		View("v_users").
+		ViewColumns([]string{"first_name", "last_name"}).
+		ViewSQL(selectSQL).
+		CreateIfNotExists()
+
+	expected := `CREATE VIEW IF NOT EXISTS "v_users" ("first_name", "last_name") AS SELECT "FirstName", "LastName" FROM "users";`
 	if sql != expected {
 		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
 	}

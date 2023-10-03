@@ -15,7 +15,7 @@ go get -u github.com/gouniverse/sql
 ```
 
 
-## Example Table Creation SQL
+## Example Create Table SQL
 
 ```go
 import sb "github.com/gouniverse/sql"
@@ -128,6 +128,44 @@ if err != nil {
 myDB.CommitTransaction()
 
 ```
+
+## Example Create View SQL
+
+```go
+selectSQL := NewBuilder(DIALECT_POSTGRES).
+	Table("users").
+	Select([]string{"FirstName", "LastName"})
+
+createViewSql := NewBuilder(DIALECT_POSTGRES).
+	View("v_users").
+	ViewColumns([]string{"first_name", "last_name"}).
+	ViewSQL(selectSQL).
+	Create()
+```
+
+## Example Create View If Not Exists SQL
+
+```go
+selectSQL := NewBuilder(DIALECT_POSTGRES).
+	Table("users").
+	Select([]string{"FirstName", "LastName"})
+
+createViewSql := NewBuilder(DIALECT_POSTGRES).
+	View("v_users").
+	ViewColumns([]string{"first_name", "last_name"}).
+	ViewSQL(selectSQL).
+	CreateIfNotExists()
+```
+
+
+## Example Drop View SQL
+
+```go
+dropiewSql := NewBuilder(DIALECT_POSTGRES).
+	View("v_users").
+	Drop()
+```
+
 
 ## Example Select as Map
 
