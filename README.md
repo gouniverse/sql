@@ -23,22 +23,22 @@ import sb "github.com/gouniverse/sql"
 sql := NewBuilder(DIALECT_MYSQL).
 	Table("users").
 	Column("id", COLUMN_TYPE_STRING, map[string]string{
-		"primary": "yes",
-		"length":  "40",
+		COLUMN_ATTRIBUTE_PRIMARY: "yes",
+		COLUMN_ATTRIBUTE_LENGTH:  "40",
 	}).
 	Column("image", COLUMN_TYPE_BLOB, map[string]string{}).
 	Column("price_default", COLUMN_TYPE_DECIMAL, map[string]string{
-		"length":   "12",
-		"decimals": "10",
+		COLUMN_ATTRIBUTE_LENGTH:   "12",
+		COLUMN_ATTRIBUTE_DECIMALS: "10",
 	}).
 	Column("price_custom", COLUMN_TYPE_DECIMAL, map[string]string{
-		"length":   "12",
-		"decimals": "10",
+		COLUMN_ATTRIBUTE_LENGTH:   "12",
+		COLUMN_ATTRIBUTE_DECIMALS: "10",
 	}).
 	Column("created_at", COLUMN_TYPE_DATETIME, map[string]string{}).
 	Column("updated_at", COLUMN_TYPE_DATETIME, map[string]string{}).
 	Column("deleted_at", COLUMN_TYPE_DATETIME, map[string]string{
-		"nullable": "yes",
+		COLUMN_ATTRIBUTE_NULLABLE: "yes",
 	}).
 	Create()
 ```
