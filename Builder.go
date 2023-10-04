@@ -800,6 +800,16 @@ func (b *Builder) quoteColumn(columnName string) string {
 	columnQuoted := []string{}
 
 	for _, columnPart := range columnSplit {
+		if columnPart == "*" {
+			columnQuoted = append(columnQuoted, columnPart)
+			continue
+		}
+
+		if strings.Contains(columnPart, "(") {
+			columnQuoted = append(columnQuoted, columnPart)
+			continue
+		}
+
 		if b.Dialect == DIALECT_MYSQL {
 			columnPart = "`" + columnPart + "`"
 		}

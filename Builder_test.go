@@ -568,3 +568,25 @@ func TestBuilderTableSelectSqlitelInj(t *testing.T) {
 		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
 	}
 }
+
+func TestBuilderTableSelectAll(t *testing.T) {
+	sql := NewBuilder(DIALECT_SQLITE).
+		Table("users").
+		Select([]string{"*"})
+
+	expected := `SELECT * FROM "users";`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
+
+func TestBuilderTableSelectFn(t *testing.T) {
+	sql := NewBuilder(DIALECT_SQLITE).
+		Table("users").
+		Select([]string{"MIN(created_at)"})
+
+	expected := `SELECT MIN(created_at) FROM "users";`
+	if sql != expected {
+		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
+	}
+}
