@@ -26,7 +26,7 @@ sql := NewBuilder(DIALECT_MYSQL).
 		"primary": "yes",
 		"length":  "40",
 	}).
-	Column("image", COLUMN_TYPE_BLOG, map[string]string{}).
+	Column("image", COLUMN_TYPE_BLOB, map[string]string{}).
 	Column("price_default", COLUMN_TYPE_DECIMAL, map[string]string{
 		"length":   "12",
 		"decimals": "10",
