@@ -21,23 +21,26 @@ go get -u github.com/gouniverse/sql
 import sb "github.com/gouniverse/sql"
 
 sql := NewBuilder(DIALECT_MYSQL).
-		Table("users").
-		Column("id", "string", map[string]string{
-			"primary": "yes",
-			"length":  "40",
-		}).
-		Column("image", "blob", map[string]string{}).
-		Column("price_default", "decimal", map[string]string{}).
-		Column("price_custom", "decimal", map[string]string{
-			"length":   "12",
-			"decimals": "10",
-		}).
-		Column("created_at", "datetime", map[string]string{}).
-		Column("updated_at", "datetime", map[string]string{}).
-		Column("deleted_at", "datetime", map[string]string{
-			"nullable": "yes",
-		}).
-		Create()
+	Table("users").
+	Column("id", COLUMN_TYPE_STRING, map[string]string{
+		"primary": "yes",
+		"length":  "40",
+	}).
+	Column("image", COLUMN_TYPE_BLOG, map[string]string{}).
+	Column("price_default", COLUMN_TYPE_DECIMAL, map[string]string{
+		"length":   "12",
+		"decimals": "10",
+	}).
+	Column("price_custom", COLUMN_TYPE_DECIMAL, map[string]string{
+		"length":   "12",
+		"decimals": "10",
+	}).
+	Column("created_at", COLUMN_TYPE_DATETIME, map[string]string{}).
+	Column("updated_at", COLUMN_TYPE_DATETIME, map[string]string{}).
+	Column("deleted_at", COLUMN_TYPE_DATETIME, map[string]string{
+		"nullable": "yes",
+	}).
+	Create()
 ```
 
 ## Example Table Drop SQL
