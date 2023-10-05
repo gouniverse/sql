@@ -204,7 +204,7 @@ func (b *Builder) Drop() string {
 
 	if isView {
 		if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
-			sql = "DROP VIEW " + b.quoteTable(b.sqlTableName) + ";"
+			sql = "DROP VIEW " + b.quoteTable(b.sqlViewName) + ";"
 		}
 	}
 
