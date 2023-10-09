@@ -195,4 +195,6 @@ mapString := myDb.SelectToMapAny(sql)
 - https://doug-martin.github.io/goqu - Best SQL Builder for Golang
 - https://github.com/elgris/golang-sql-builder-benchmark
 - https://github.com/es-code/gql
+- https://github.com/cosiner/go-sqldb
+- https://github.com/simukti/sqldb-logger
 
