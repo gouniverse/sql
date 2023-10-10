@@ -139,9 +139,9 @@ func (b *Builder) CreateIfNotExists() string {
 			}), ", ")
 			viewColumns := lo.If(len(b.sqlViewColumns) > 0, ` (`+viewColumnsToSQL+`)`).Else(``)
 
-			sqlStart := "CREATE VIEW IF NOT EXISTS "
+			sqlStart := "CREATE VIEW IF NOT EXISTS"
 			if b.Dialect == DIALECT_MYSQL {
-				sqlStart = "CREATE OR REPLACE VIEW "
+				sqlStart = "CREATE OR REPLACE VIEW"
 			}
 
 			sql = sqlStart + ` ` + b.quoteTable(b.sqlViewName) + viewColumns + " AS " + b.sqlViewSQL

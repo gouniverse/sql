@@ -210,7 +210,7 @@ func TestBuilderViewCreateIfNotExistsMysql(t *testing.T) {
 		ViewSQL(selectSQL).
 		CreateIfNotExists()
 
-	expected := "CREATE VIEW IF NOT EXISTS `v_users` (`first_name`, `last_name`) AS SELECT `FirstName`, `LastName` FROM `users`;"
+	expected := "CREATE OR REPLACE VIEW `v_users` (`first_name`, `last_name`) AS SELECT `FirstName`, `LastName` FROM `users`;"
 	if sql != expected {
 		t.Fatal("Expected:\n", expected, "\nbut found:\n", sql)
 	}
