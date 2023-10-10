@@ -139,7 +139,12 @@ func (b *Builder) CreateIfNotExists() string {
 			}), ", ")
 			viewColumns := lo.If(len(b.sqlViewColumns) > 0, ` (`+viewColumnsToSQL+`)`).Else(``)
 
-			sql = `CREATE VIEW IF NOT EXISTS ` + b.quoteTable(b.sqlViewName) + viewColumns + " AS " + b.sqlViewSQL
+			sqlStart := "CREATE VIEW IF NOT EXISTS "
+			if b.Dialect == DIALECT_MYSQL {
+				sqlStart = "CREATE OR REPLACE VIEW "
+			}
+
+			sql = sqlStart + ` ` + b.quoteTable(b.sqlViewName) + viewColumns + " AS " + b.sqlViewSQL
 		}
 	}
 
@@ -205,6 +210,27 @@ func (b *Builder) Drop() string {
 	if isView {
 		if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
 			sql = "DROP VIEW " + b.quoteTable(b.sqlViewName) + ";"
+		}
+	}
+
+	return sql
+}
+
+func (b *Builder) DropIfExists() string {
+	isView := b.sqlViewName != ""
+	isTable := b.sqlTableName != ""
+
+	sql := ""
+
+	if isTable {
+		if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
+			sql = "DROP TABLE IF EXISTS " + b.quoteTable(b.sqlTableName) + ";"
+		}
+	}
+
+	if isView {
+		if b.Dialect == DIALECT_MYSQL || b.Dialect == DIALECT_POSTGRES || b.Dialect == DIALECT_SQLITE {
+			sql = "DROP VIEW IF EXISTS " + b.quoteTable(b.sqlViewName) + ";"
 		}
 	}
 
