@@ -22,3 +22,15 @@ const COLUMN_TYPE_INTEGER = "integer"
 const COLUMN_TYPE_STRING = "string"
 const COLUMN_TYPE_TEXT = "text"
 const COLUMN_TYPE_LONGTEXT = "longtext"
+
+// Common
+const YES = "yes"
+const NO = "no"
+
+// Null time
+const NULL_DATE = "0001-01-01"
+const NULL_DATETIME = "0001-01-01 00:00:00"
+
+// Sortable
+const ASC = "asc"
+const DESC = "desc"
